@@ -12,6 +12,14 @@
   <img src="https://img.shields.io/badge/license-MIT-green" />
 </p>
 
+<p align="center">
+  <a href="https://t.me/CrypterCC"><img src="https://img.shields.io/badge/Telegram-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" /></a>
+  &nbsp;
+  <a href="http://t.me/+cqqW4Z9PcP9kODE0"><img src="https://img.shields.io/badge/Telegram-Chat-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" /></a>
+  &nbsp;
+  <a href="https://t.me/CCVouchesReviews"><img src="https://img.shields.io/badge/Reviews_%26_Vouches-⭐-gold?style=for-the-badge&logo=telegram&logoColor=white" /></a>
+</p>
+
 ---
 
 Typhon is not just another PoolParty implementation. It's a complete evasive injection framework that combines six independent bypass layers into a single tool — indirect syscalls via Tartarus Gate, per-call trampoline rotation, full call-stack spoofing with CET awareness, section-backed cross-process memory, PEB-only API resolution with zero imports, and a zero-patch AMSI/ETW bypass that doesn't touch a single code byte. The PoolParty thread pool variants are the delivery mechanism. Everything else is what keeps it alive in a monitored environment.
